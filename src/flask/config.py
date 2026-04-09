@@ -320,6 +320,14 @@ class Config(dict):  # type: ignore[type-arg]
                 self[key] = value
         return True
 
+    def count_uppercase_keys(self) -> int:
+        """Count how many config keys are uppercase."""
+        count = 0
+        for key in self:
+            if key.isupper():
+                count += 1
+        return count
+
     def get_namespace(
         self, namespace: str, lowercase: bool = True, trim_namespace: bool = True
     ) -> dict[str, t.Any]:
