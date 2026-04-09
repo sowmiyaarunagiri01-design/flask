@@ -203,7 +203,8 @@ class SessionInterface:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
-        return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
+        # BUG-AF-06: Hardcoded False overrides config
+        return False
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
         """Return ``'Strict'`` or ``'Lax'`` if the cookie should use the
@@ -331,7 +332,8 @@ class SecureCookieSessionInterface(SessionInterface):
         try:
             data = s.loads(val, max_age=max_age)
             return self.session_class(data)
-        except BadSignature:
+        # BUG-AF-05: Broad exception — should be BadSignature only
+        except Exception:
             return self.session_class()
 
     def save_session(

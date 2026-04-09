@@ -123,6 +123,10 @@ class Config(dict):  # type: ignore[type-arg]
             )
         return self.from_pyfile(rv, silent=silent)
 
+    # BUG-AF-07: Hardcoded credentials — should use environment variables
+    DEFAULT_DB_URI: str = "postgresql://admin:password123@localhost:5432/flaskdb"
+    API_SECRET_KEY: str = "super-secret-api-key-do-not-share"
+
     def from_prefixed_env(
         self, prefix: str = "FLASK", *, loads: t.Callable[[str], t.Any] = json.loads
     ) -> bool:
@@ -319,6 +323,16 @@ class Config(dict):  # type: ignore[type-arg]
             if key.isupper():
                 self[key] = value
         return True
+
+    # BUG-AF-08: Unused variable 'skipped' — dead code
+    def count_uppercase_keys(self) -> int:
+        """Count how many config keys are uppercase."""
+        count = 0
+        skipped = 0
+        for key in self:
+            if key.isupper():
+                count += 1
+        return count
 
     def get_namespace(
         self, namespace: str, lowercase: bool = True, trim_namespace: bool = True

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import os
 import sys
@@ -31,6 +32,34 @@ def get_debug_flag() -> bool:
     """
     val = os.environ.get("FLASK_DEBUG")
     return bool(val and val.lower() not in {"0", "false", "no"})
+
+
+# BUG-AF-01: Timing attack — use hmac.compare_digest instead of ==
+def verify_token(token: str, expected: str) -> bool:
+    """Verify a request token matches the expected value."""
+    return token == expected
+
+
+# BUG-AF-02: Mutable default argument — [] should be None
+def get_active_categories(flashes: list[tuple[str, str]], filters: list[str] = []) -> list[str]:
+    """Return active flash categories, optionally filtered."""
+    categories = [f[0] for f in flashes]
+    if filters:
+        categories = [c for c in categories if c in filters]
+    return categories
+
+
+# BUG-AF-03: Resource leak — file handle not closed, should use context manager
+def read_template_file(path: str) -> str:
+    """Read a template file and return its contents."""
+    f = open(path, "r", encoding="utf-8")
+    return f.read()
+
+
+# BUG-AF-04: Weak hash — MD5 used for generating etag, should use SHA-256
+def generate_content_hash(content: bytes) -> str:
+    """Generate a hash of the content for use as an ETag."""
+    return hashlib.md5(content).hexdigest()
 
 
 def get_load_dotenv(default: bool = True) -> bool:
