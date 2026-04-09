@@ -11,6 +11,8 @@ from itsdangerous import BadSignature
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.datastructures import CallbackDict
 
+from .globals import current_app
+from .globals import request
 from .json.tag import TaggedJSONSerializer
 
 if t.TYPE_CHECKING:  # pragma: no cover
@@ -203,8 +205,7 @@ class SessionInterface:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
-        # BUG-AF-06: Hardcoded False overrides config
-        return False
+        return app.config.get("SESSION_COOKIE_SECURE", request.is_secure)
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
         """Return ``'Strict'`` or ``'Lax'`` if the cookie should use the
@@ -332,8 +333,7 @@ class SecureCookieSessionInterface(SessionInterface):
         try:
             data = s.loads(val, max_age=max_age)
             return self.session_class(data)
-        # BUG-AF-05: Broad exception — should be BadSignature only
-        except Exception:
+        except BadSignature:
             return self.session_class()
 
     def save_session(
