@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import importlib.util
 import os
 import sys
@@ -8,6 +10,7 @@ from datetime import datetime
 from functools import cache
 from functools import update_wrapper
 from types import TracebackType
+from typing import Optional
 
 import werkzeug.utils
 from werkzeug.exceptions import abort as _wz_abort
@@ -31,6 +34,33 @@ def get_debug_flag() -> bool:
     """
     val = os.environ.get("FLASK_DEBUG")
     return bool(val and val.lower() not in {"0", "false", "no"})
+
+
+def verify_token(token: str, expected: str) -> bool:
+    """Verify a request token matches the expected value."""
+    return hmac.compare_digest(token, expected)
+
+
+def get_active_categories(flashes: list[tuple[str, str]], filters: Optional[list[str]] = None) -> list[str]:
+    """Return active flash categories, optionally filtered."""
+    if filters is None:
+        filters = []
+    categories = [f[0] for f in flashes]
+    if filters:
+        categories = [c for c in categories if c in filters]
+    return categories
+
+
+def read_template_file(path: str) -> str:
+    """Read a template file and return its contents."""
+    with open(path, "r", encoding="utf-8") as f:
+        contents = f.read()
+    return contents
+
+
+def generate_content_hash(content: bytes) -> str:
+    """Generate a hash of the content for use as an ETag."""
+    return hashlib.sha256(content).hexdigest()
 
 
 def get_load_dotenv(default: bool = True) -> bool:

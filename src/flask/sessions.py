@@ -11,6 +11,8 @@ from itsdangerous import BadSignature
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.datastructures import CallbackDict
 
+from .globals import current_app
+from .globals import request
 from .json.tag import TaggedJSONSerializer
 
 if t.TYPE_CHECKING:  # pragma: no cover
@@ -203,7 +205,7 @@ class SessionInterface:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
-        return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
+        return app.config.get("SESSION_COOKIE_SECURE", request.is_secure)
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
         """Return ``'Strict'`` or ``'Lax'`` if the cookie should use the
